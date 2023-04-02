@@ -1,0 +1,70 @@
+
+<html>
+<head>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="./util.js"></script>
+    <script type="text/javascript">
+
+
+        const header = ['상품', '단가', '갯수', '금액']
+        const items = [
+          ['책', 100, 3, 300],
+          ['연필', 200, 3, 600],
+          ['공책', 100, 1, 100],
+          ['노트북', 150, 3, 450]
+        ]
+        const footer = [
+          {value: '함계', colspan: 3},
+          {value: 1450}
+        ]
+
+        function xlsxDownload() {
+          const excelData = [header, ...items]
+
+          const merges = []
+          // footer 추가.
+          const row = excelData.length
+          let offset = 0
+          let footerData = []
+          for( let idx = 0; idx < footer.length; idx++ ) {
+            footerData.push( footer[idx].value )
+            const mergeCol = footer[idx].colspan - 1
+            if( mergeCol > 0 ) {
+              const s = { r: row, c: idx + offset }
+              offset += mergeCol
+              const e = { r: row, c: idx + offset }
+              merges.push( { s, e } )
+
+              for( let i = 0; i < mergeCol; i++ ) {
+                footerData.push( '' )
+              }
+
+
+            }
+          }
+
+          excelData.push( footerData )
+
+          let ws = XLSX.utils.aoa_to_sheet( excelData )
+          if( !ws['!merges'] ) { ws['!merges'] = merges }
+
+          /* generate workbook */
+          let wb = XLSX.utils.book_new()
+          XLSX.utils.book_append_sheet( wb, ws, 'sheet1' )
+
+
+          /* generate file and download */
+          const wbOut = XLSX.write( wb, { type: 'array', bookType: 'xlsx' } )
+
+          util.saveAs( new Blob( [wbOut], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' } ), 'test.xlsx' )
+        }
+
+
+    </script>
+</head>
+<body>
+<button onclick="xlsxDownload()">다운로드</button>
+
+</body>
+</html>
+
